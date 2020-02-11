@@ -119,20 +119,27 @@ class RunJoyToKey(object):
         self.cfg_file_name = cfg_file_name
         self.cfg_key = 'FileName'
         self.cfg_section = 'LastStatus'
+        self.find_command = r'tasklist /fi "imagename eq joytokey.exe"'
+        self.kill_command = r'taskkill /F /IM JoyToKey.exe'
 
     def re_run_joy_to_key(self):
-        if self.set_ini_cfg():
-            self.kill_joy_to_key()
-            print('重新啟動JoyToKey, 使用設定檔: {}'.format(self.cfg_file_name))
+        if self.is_joytokey_runing():
+            if self.set_ini_cfg():
+                self.kill_joy_to_key()
+                print('重新啟動JoyToKey, 使用設定檔: {}'.format(self.cfg_file_name))
+                os.system('start ' + self.exec_full_path)
+        else:
+            self.set_ini_cfg()
             os.system('start ' + self.exec_full_path)
 
-    @staticmethod
-    def kill_joy_to_key():
-        find_command = r'tasklist /fi "imagename eq joytokey.exe"'
-        kill_command = r'taskkill /F /IM JoyToKey.exe'
-        line = subprocess.check_output(find_command).decode('big5', 'ignore').split("\r\n")
+    def kill_joy_to_key(self):
+        os.system(self.kill_command)
+
+    def is_joytokey_runing(self):
+        line = subprocess.check_output(self.find_command).decode('big5', 'ignore').split("\r\n")
         if len(line) >= 5:
-            os.system(kill_command)
+            return True
+        return False
 
     def set_ini_cfg(self):
         ini_control = IniControl(self.ini_full_path)
