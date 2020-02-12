@@ -1,76 +1,64 @@
-import keyboard
-import settings
-from key_sender import Key, press
+import ctypes
+import time
 import configparser
 import os
 import subprocess
-import ctypes
+from multiprocessing import Process
 
 
-class DnfHotKey(object):
-    def regist_hotkey(self, dnf_character):
-        if settings.test:
-            keyboard.add_hotkey('F10', self.f10_fun)
-            keyboard.add_hotkey('F11', self.f11_fun)
-            keyboard.add_hotkey('F12', self.f12_fun)
-        elif dnf_character == settings.Character.modau:
-            keyboard.add_hotkey('F10', self.modau_f10_fun)
-            keyboard.add_hotkey('F11', self.modau_f11_fun)
-            keyboard.add_hotkey('F12', self.modau_f12_fun)
+def get_foreground_title():
+    hwnd = ctypes.windll.user32.GetForegroundWindow()
+    length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
+    buff = ctypes.create_unicode_buffer(length + 1)
+    ctypes.windll.user32.GetWindowTextW(hwnd, buff, length + 1)
+    title = buff.value
+    return title
 
-        keyboard.wait('esc')
 
-    @staticmethod
-    def get_foreground_title():
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
-        length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
-        buff = ctypes.create_unicode_buffer(length + 1)
-        ctypes.windll.user32.GetWindowTextW(hwnd, buff, length + 1)
-        print(buff.value)
+def create_process(process_list, args_list):
+    process_ll = []
+    count = 0
 
-    @staticmethod
-    def send_key(key):
-        # time.sleep(0.1)
-        press(key)
+    for process_f in process_list:
+        process_ll.append(Process(target=process_f, args=args_list[count]))
+        count += 1
 
-    def f10_fun(self):
-        self.get_foreground_title()
-        # self.send_key(Key.downarrow)
-        # self.send_key(Key.uparrow)
-        # self.send_key(Key.space)
+    for process in process_ll:
+        process.start()
 
-    def f11_fun(self):
-        self.send_key(Key.uparrow)
-        self.send_key(Key.uparrow)
-        self.send_key(Key.space)
+    for process in process_ll:
+        process.join()
 
-    def f12_fun(self):
-        self.send_key(Key.uparrow)
-        self.send_key(Key.rightarrow)
-        self.send_key(Key.space)
 
-    # 魔道
-    def modau_f10_fun(self):
-        self.send_key(Key.downarrow)
-        self.send_key(Key.uparrow)
-        self.send_key(Key.space)
+class CheckWindowsIsForeground(object):
+    def __init__(self, title_name):
+        self.title_name = title_name
 
-    def modau_f11_fun(self):
-        self.send_key(Key.uparrow)
-        self.send_key(Key.uparrow)
-        self.send_key(Key.space)
+    def loop_check_is_foreground(self, queue_h):
+        pre_title = get_foreground_title()
+        while True:
+            time.sleep(0.1)
+            current_title = get_foreground_title()
+            try:
+                message = queue_h.get_nowait()
+                if message == 'end':
+                    return
+            except Exception as e:
+                str(e)
 
-    def modau_f12_fun(self):
-        self.send_key(Key.uparrow)
-        self.send_key(Key.rightarrow)
-        self.send_key(Key.space)
+            if current_title != self.title_name:
+                queue_h.put('exit_foreground')
+            else:
+                if pre_title != current_title:
+                    queue_h.put('into_foreground')
+            pre_title = current_title
 
 
 class IniControl(object):
     def __init__(self, ini_full_path):
         self.ini_full_path = ini_full_path
         self.ini_format = 'utf8'
-        self.format_list = ['utf8', 'utf-8-sig', 'utf16', 'big5', 'gbk', 'gb2312']
+        self.format_list = [None, 'utf8', 'utf-8-sig', 'utf16', 'big5', 'gbk', 'gb2312']
         self.try_ini_format()
 
     def try_ini_format(self):
@@ -82,8 +70,9 @@ class IniControl(object):
                 self.ini_format = file_format
                 print('find correct format {} in ini file: {}'.format(file_format, self.ini_full_path))
                 return
-            except:
+            except Exception as e:
                 print('checking {} format: {}'.format(self.ini_full_path, file_format))
+                str(e)
 
     def read_config(self, section, key):
         try:
@@ -92,8 +81,9 @@ class IniControl(object):
             config_lh.read_file(file_ini_lh)
             file_ini_lh.close()
             return config_lh.get(section, key)
-        except:
+        except Exception as e:
             print("Error! 讀取ini設定檔發生錯誤! " + self.ini_full_path)
+            str(e)
             raise
 
     def write_config(self, sections, key, value):
@@ -108,8 +98,9 @@ class IniControl(object):
             config_lh.set(sections, key, value)
             config_lh.write(file_ini_lh)
             file_ini_lh.close()
-        except Exception as ex:
+        except Exception as e:
             print("Error! 寫入ini設定檔發生錯誤! " + self.ini_full_path)
+            str(e)
             raise
 
 
@@ -152,16 +143,3 @@ class RunJoyToKey(object):
             ini_control.write_config(self.cfg_section, self.cfg_key, self.cfg_file_name)
             print('JoyToKey設定檔改為: {}'.format(self.cfg_file_name))
             return True
-
-
-if __name__ == '__main__':
-    joytokey_cfg = settings.JoyToKeyCfg_dic[settings.CHARACTER]
-    character = settings.CHARACTER
-
-    # if settings.CHARACTER == settings.Character.modau:
-    #     character = settings.Character.modau
-    #     dnf_char = DnfMagic()
-    run_joy_to_key = RunJoyToKey(settings.ini_full_path, settings.exec_full_path, settings.JoyToKeyCfg_dic[character])
-    run_joy_to_key.re_run_joy_to_key()
-    dnf_char = DnfHotKey()
-    dnf_char.regist_hotkey(character)

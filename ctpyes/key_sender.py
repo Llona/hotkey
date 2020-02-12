@@ -28,7 +28,7 @@ class Key:
     pgdown = 0x22
     end = 0x23
     home = 0x24
-    leftarrow = 0x26
+    leftarrow = 0x25
     uparrow = 0x26
     rightarrow = 0x27
     downarrow = 0x28
