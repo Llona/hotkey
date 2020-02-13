@@ -134,12 +134,15 @@ class RunJoyToKey(object):
         return False
 
     def set_ini_cfg(self):
-        ini_control = IniControl(self.ini_full_path)
-        cfg_value = ini_control.read_config(self.cfg_section, self.cfg_key)
-        if cfg_value == self.cfg_file_name:
-            print('JoyToKey現在使用 {}, 不需要更改設定'.format(cfg_value))
-            return False
+        if os.path.exists(self.ini_full_path):
+            ini_control = IniControl(self.ini_full_path)
+            cfg_value = ini_control.read_config(self.cfg_section, self.cfg_key)
+            if cfg_value == self.cfg_file_name:
+                print('JoyToKey現在使用 {}, 不需要更改設定'.format(cfg_value))
+                return False
+            else:
+                ini_control.write_config(self.cfg_section, self.cfg_key, self.cfg_file_name)
+                print('JoyToKey設定檔改為: {}'.format(self.cfg_file_name))
+                return True
         else:
-            ini_control.write_config(self.cfg_section, self.cfg_key, self.cfg_file_name)
-            print('JoyToKey設定檔改為: {}'.format(self.cfg_file_name))
-            return True
+            print('找不到 {} , 請確認路徑設定, 如果是第一次啟動JoyToKey, 關閉再開啟一次JoyToKey就會產生ini檔了'.format(self.ini_full_path))
