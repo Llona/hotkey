@@ -1,11 +1,10 @@
 # _*_ coding:UTF-8 _*_
 import win32api
 import win32con
-import ctypes
+# import ctypes
 from ctypes import *
 import time
 
-MapVirtualKey = ctypes.windll.user32.MapVirtualKeyA
 
 Key = {
     'backspace': 0x08,
@@ -195,7 +194,8 @@ def key_input(strs=''):
 
 
 def key_press(num):
-    win32api.keybd_event(num, MapVirtualKey(num, 0), 0, 0)
-    time.sleep(0.03)
-    win32api.keybd_event(num, MapVirtualKey(num, 0), win32con.KEYEVENTF_KEYUP, 0)
+    # MapVirtualKey = ctypes.windll.user32.MapVirtualKeyA
+    win32api.keybd_event(num, win32api.MapVirtualKey(num, 0), 0, 0)
+    time.sleep(0.1)
+    win32api.keybd_event(num, win32api.MapVirtualKey(num, 0), win32con.KEYEVENTF_KEYUP, 0)
     time.sleep(0.1)
