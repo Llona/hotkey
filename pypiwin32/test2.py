@@ -42,8 +42,8 @@ class KEYBDINPUT(ctypes.Structure):
         super(KEYBDINPUT, self).__init__(*args, **kwds)
         # some programs use the scan code even if KEYEVENTF_SCANCODE
         # isn't set in dwFflags, so attempt to map the correct code.
-        if not self.dwFlags & KEYEVENTF_UNICODE:
-            self.wScan = user32.MapVirtualKeyExW(self.wVk,
+        # if not self.dwFlags & KEYEVENTF_UNICODE:
+        self.wScan = user32.MapVirtualKeyExW(self.wVk,
                                                  MAPVK_VK_TO_VSC, 0)
 
 class HARDWAREINPUT(ctypes.Structure):
