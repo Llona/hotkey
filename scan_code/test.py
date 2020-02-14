@@ -57,9 +57,12 @@ def ReleaseKey(hexKeyCode):
     ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
 
 if __name__ == '__main__':
-    up = 0x32
+    code = 0xe0
+    up = 0xc8
     for i in range(200):
+        # PressKey(code)
         PressKey(up)
         time.sleep(0.1)
+        # ReleaseKey(code)
         ReleaseKey(up)
         time.sleep(1)

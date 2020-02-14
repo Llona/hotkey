@@ -22,6 +22,7 @@ VK_MENU = 0x12
 # C struct definitions
 
 wintypes.ULONG_PTR = wintypes.WPARAM
+wintypes.ULONG_PTR = ctypes.POINTER(ctypes.c_ulong)
 
 class MOUSEINPUT(ctypes.Structure):
     _fields_ = (("dx",          wintypes.LONG),
@@ -38,14 +39,14 @@ class KEYBDINPUT(ctypes.Structure):
                 ("time",        wintypes.DWORD),
                 ("dwExtraInfo", wintypes.ULONG_PTR))
 
-    def __init__(self, *args, **kwds):
-        super(KEYBDINPUT, self).__init__(*args, **kwds)
-        # some programs use the scan code even if KEYEVENTF_SCANCODE
-        # isn't set in dwFflags, so attempt to map the correct code.
-        # if not self.dwFlags & KEYEVENTF_UNICODE:
-        self.wScan = user32.MapVirtualKeyExW(self.wVk,
-                                                 MAPVK_VK_TO_VSC, 0)
-
+    # def __init__(self, *args, **kwds):
+    #     super(KEYBDINPUT, self).__init__(*args, **kwds)
+    #     # some programs use the scan code even if KEYEVENTF_SCANCODE
+    #     # isn't set in dwFflags, so attempt to map the correct code.
+    #     # if not self.dwFlags & KEYEVENTF_UNICODE:
+    #     self.wScan = user32.MapVirtualKeyExW(self.wVk,
+    #                                              MAPVK_VK_TO_VSC, 0)
+    #     print(self.wScan)
 class HARDWAREINPUT(ctypes.Structure):
     _fields_ = (("uMsg",    wintypes.DWORD),
                 ("wParamL", wintypes.WORD),
@@ -99,7 +100,7 @@ def AltTab():
 if __name__ == "__main__":
     # AltTab()
     code = 0xe0
-    up = 0x26
+    up = 0xc8
     for i in range(200):
         # PressKey(code)
         PressKey(up)
