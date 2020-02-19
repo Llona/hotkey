@@ -1,11 +1,37 @@
-# _*_ coding:UTF-8 _*_
-import ctypes
-import time
 import enum
+import os
+import sys
 
 
-class Key(enum.IntEnum):
+test = False
+CONFIG_FOLDER_NAME = 'config'
+DEFAULT_CONFIG_NAME = os.path.join(os.path.join(sys.path[0], CONFIG_FOLDER_NAME), 'test.cfg')
+FOREGROUND_TITLE = '未命名 - 記事本'
+exec_full_path = r'C:\Users\william_liu\Desktop\joytokey\JoyToKey.exe'
+ini_full_path = r'C:\Users\william_liu\Documents\JoyToKey\JoyToKey.ini'
+
+
+class CfgKeyEnum(enum.Enum):
+    joy_to_key_cfg = 'joy_to_key'
+    hot_key = 'hot_key'
+
+
+class KeyGroupEnum(enum.Enum):
+    modau = '魔道'
+    ninja = '忍者'
+    slash = '槍劍'
+
+
+JoyToKeyCfg_dic = {KeyGroupEnum.modau: 'DNF魔道',
+                   KeyGroupEnum.ninja: 'DNF忍者',
+                   KeyGroupEnum.slash: 'DNF槍劍'}
+
+KEY_GROUP = KeyGroupEnum.modau
+
+
+class ScanCodeEmu(enum.IntEnum):
     DIK_ESCAPE = 0x01
+    DIK_ESC = DIK_ESCAPE
     DIK_1 = 0x02
     DIK_2 = 0x03
     DIK_3 = 0x04
@@ -152,83 +178,3 @@ class Key(enum.IntEnum):
     DIK_MOUSEBUTTON7 = 0x107
     DIK_MOUSEWHEELUP = 0x108
     DIK_MOUSEWHEELDOWN = 0x109
-
-
-SendInput = ctypes.windll.user32.SendInput
-
-# C struct redefinitions
-PUL = ctypes.POINTER(ctypes.c_ulong)
-
-
-class KeyBdInput(ctypes.Structure):
-    _fields_ = [("wVk", ctypes.c_ushort),
-                ("wScan", ctypes.c_ushort),
-                ("dwFlags", ctypes.c_ulong),
-                ("time", ctypes.c_ulong),
-                ("dwExtraInfo", PUL)]
-
-
-class HardwareInput(ctypes.Structure):
-    _fields_ = [("uMsg", ctypes.c_ulong),
-                ("wParamL", ctypes.c_short),
-                ("wParamH", ctypes.c_ushort)]
-
-
-class MouseInput(ctypes.Structure):
-    _fields_ = [("dx", ctypes.c_long),
-                ("dy", ctypes.c_long),
-                ("mouseData", ctypes.c_ulong),
-                ("dwFlags", ctypes.c_ulong),
-                ("time", ctypes.c_ulong),
-                ("dwExtraInfo", PUL)]
-
-
-class InputI(ctypes.Union):
-    _fields_ = [("ki", KeyBdInput),
-                ("mi", MouseInput),
-                ("hi", HardwareInput)]
-
-
-class Input(ctypes.Structure):
-    _fields_ = [("type", ctypes.c_ulong),
-                ("ii", InputI)]
-
-
-def get_key_value(code_name):
-    return Key[code_name].value
-
-
-# Actuals Functions
-def keep_press_key(scan_code):
-    extra = ctypes.c_ulong(0)
-    ii_ = InputI()
-    ii_.ki = KeyBdInput(0, scan_code, 0x0008, 0, ctypes.pointer(extra))
-    x = Input(ctypes.c_ulong(1), ii_)
-    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-
-def release_key(scan_code):
-    extra = ctypes.c_ulong(0)
-    ii_ = InputI()
-    ii_.ki = KeyBdInput(0, scan_code, 0x0008 | 0x0002, 0, ctypes.pointer(extra))
-    x = Input(ctypes.c_ulong(1), ii_)
-    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-
-def key_press(scan_code):
-    keep_press_key(scan_code)
-    time.sleep(0.08)
-    release_key(scan_code)
-    time.sleep(0.1)
-
-
-# if __name__ == '__main__':
-#     print(Key.DIK_UP.value)
-    # up = Key.DIK_UP
-    # for i in range(200):
-    #     # PressKey(code)
-    #     PressKey(up)
-    #     time.sleep(0.1)
-    #     # ReleaseKey(code)
-    #     ReleaseKey(up)
-    #     time.sleep(1)

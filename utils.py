@@ -4,6 +4,8 @@ import configparser
 import os
 import subprocess
 from multiprocessing import Process
+import threading
+import json
 
 
 def get_foreground_title():
@@ -13,6 +15,26 @@ def get_foreground_title():
     ctypes.windll.user32.GetWindowTextW(hwnd, buff, length + 1)
     title = buff.value
     return title
+
+
+class CreateThread(threading.Thread):
+    def __init__(self, queue, stop_str):
+        threading.Thread.__init__(self)
+        self.thread_queue = queue
+        self.stop_str = stop_str
+        # self.thread_queue = queue.Queue()
+
+    def run(self):
+        try:
+            while True:
+                msg = self.thread_queue.get()
+                print('get stop event: {}'.format(msg))
+                if msg == self.stop_str:
+                    print('stop thread: {}'.format(msg))
+                    return
+                time.sleep(0.2)
+        except Exception as e:
+            print('get queue fail: {}'.format(e))
 
 
 def create_process(process_list, args_list):
@@ -53,6 +75,51 @@ class CheckWindowsIsForeground(object):
                     queue_h.put('into_foreground')
             pre_title = current_title
 
+
+class JsonControl(object):
+    def __init__(self, json_full_path):
+        self.json_full_path = json_full_path
+        self.json_format = 'utf8'
+        self.format_list = [None, 'utf8', 'utf-8-sig', 'utf16', 'big5', 'gbk', 'gb2312']
+        self.try_ini_format()
+
+    def try_ini_format(self):
+        for file_format in self.format_list:
+            try:
+                with open(self.json_full_path, 'r', encoding=file_format) as file:
+                    json_dic = json.load(file)
+                self.json_format = file_format
+                print('find correct format {} in ini file: {}'.format(file_format, self.json_full_path))
+                return
+            except Exception as e:
+                print('checking {} format: {}'.format(self.json_full_path, file_format))
+                str(e)
+
+    def read_config(self):
+        try:
+            with open(self.json_full_path, 'r', encoding=self.json_format) as file:
+                return json.load(file)
+        except Exception as e:
+            print("Error! 讀取cfg設定檔發生錯誤! " + self.json_full_path)
+            str(e)
+            raise
+    #
+    # def write_config(self, sections, key, value):
+    #     try:
+    #         config_lh = configparser.ConfigParser()
+    #         config_lh.optionxform = str
+    #         file_ini_lh = open(self.ini_full_path, 'r', encoding=self.ini_format)
+    #         config_lh.read_file(file_ini_lh)
+    #         file_ini_lh.close()
+    #
+    #         file_ini_lh = open(self.ini_full_path, 'w', encoding=self.ini_format)
+    #         config_lh.set(sections, key, value)
+    #         config_lh.write(file_ini_lh)
+    #         file_ini_lh.close()
+    #     except Exception as e:
+    #         print("Error! 寫入ini設定檔發生錯誤! " + self.ini_full_path)
+    #         str(e)
+    #         raise
 
 class IniControl(object):
     def __init__(self, ini_full_path):
