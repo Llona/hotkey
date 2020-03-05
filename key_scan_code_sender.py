@@ -3,7 +3,7 @@ import ctypes
 import time
 from hot_key import KeySender
 # import hot_key
-from settings import ScanCodeEmu
+from settings import ScanCode
 
 
 SendInput = ctypes.windll.user32.SendInput
@@ -52,18 +52,16 @@ class ScanCodeSender(KeySender):
 
     @staticmethod
     def get_key_scan_code(code_name):
-        return ScanCodeEmu[code_name].value
+        return ScanCode[code_name]
 
-    @staticmethod
-    def hold_press_key(scan_code):
+    def hold_press_key(self, scan_code):
         extra = ctypes.c_ulong(0)
         ii_ = InputI()
         ii_.ki = KeyBdInput(0, scan_code, 0x0008, 0, ctypes.pointer(extra))
         x = Input(ctypes.c_ulong(1), ii_)
         ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
 
-    @staticmethod
-    def release_key(scan_code):
+    def release_key(self, scan_code):
         extra = ctypes.c_ulong(0)
         ii_ = InputI()
         ii_.ki = KeyBdInput(0, scan_code, 0x0008 | 0x0002, 0, ctypes.pointer(extra))
@@ -72,9 +70,9 @@ class ScanCodeSender(KeySender):
 
     def key_press(self, scan_code):
         self.hold_press_key(scan_code)
-        time.sleep(0.03)
+        time.sleep(0.02)
         self.release_key(scan_code)
-        time.sleep(0.03)
+        time.sleep(0.01)
 
 
 # if __name__ == '__main__':

@@ -256,78 +256,156 @@ class SettingFrame ( wx.Frame ):
 class EditFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 514,459 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 610,539 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
-		bSizer18 = wx.BoxSizer( wx.VERTICAL )
+		bSizer22 = wx.BoxSizer( wx.HORIZONTAL )
 
-		bSizer19 = wx.BoxSizer( wx.HORIZONTAL )
+		bSizer23 = wx.BoxSizer( wx.VERTICAL )
 
-		sbSizer4 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"label" ), wx.VERTICAL )
+		sbSizer6 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Editor" ), wx.VERTICAL )
 
-		self.m_staticText8 = wx.StaticText( sbSizer4.GetStaticBox(), wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText8.Wrap( -1 )
-
-		sbSizer4.Add( self.m_staticText8, 0, wx.ALL, 5 )
-
-		self.m_textCtrl9 = wx.TextCtrl( sbSizer4.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		sbSizer4.Add( self.m_textCtrl9, 0, wx.ALL, 5 )
-
-
-		bSizer19.Add( sbSizer4, 0, wx.EXPAND, 5 )
-
-		sbSizer6 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"label" ), wx.VERTICAL )
-
-		self.m_staticText9 = wx.StaticText( sbSizer6.GetStaticBox(), wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText9 = wx.StaticText( sbSizer6.GetStaticBox(), wx.ID_ANY, u"HotKey", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText9.Wrap( -1 )
 
 		sbSizer6.Add( self.m_staticText9, 0, wx.ALL, 5 )
 
-		bSizer22 = wx.BoxSizer( wx.HORIZONTAL )
+		self.edit_hotkey_textCtrl = wx.TextCtrl( sbSizer6.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_READONLY )
+		sbSizer6.Add( self.edit_hotkey_textCtrl, 0, wx.ALL|wx.EXPAND, 5 )
 
-		self.m_textCtrl10 = wx.TextCtrl( sbSizer6.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer22.Add( self.m_textCtrl10, 0, wx.ALL, 5 )
+		self.m_staticline3 = wx.StaticLine( sbSizer6.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		sbSizer6.Add( self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5 )
 
-		self.m_button21 = wx.Button( sbSizer6.GetStaticBox(), wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer22.Add( self.m_button21, 0, wx.ALL, 5 )
+		sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( sbSizer6.GetStaticBox(), wx.ID_ANY, u"Inser Macro Key" ), wx.VERTICAL )
 
+		self.m_staticText10 = wx.StaticText( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Macro Key", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText10.Wrap( -1 )
 
-		sbSizer6.Add( bSizer22, 1, wx.EXPAND, 5 )
+		sbSizer8.Add( self.m_staticText10, 0, wx.ALL, 5 )
 
+		bSizer26 = wx.BoxSizer( wx.HORIZONTAL )
 
-		bSizer19.Add( sbSizer6, 1, wx.EXPAND, 5 )
+		self.edit_macrokey_textctrl = wx.TextCtrl( sbSizer8.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_READONLY )
+		bSizer26.Add( self.edit_macrokey_textctrl, 0, wx.ALL, 5 )
 
-
-		bSizer18.Add( bSizer19, 0, 0, 5 )
-
-		self.m_staticline3 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		bSizer18.Add( self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5 )
-
-		self.edit_listctrl = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_NO_HEADER|wx.LC_REPORT )
-		bSizer18.Add( self.edit_listctrl, 1, wx.ALL|wx.EXPAND, 5 )
-
-		bSizer20 = wx.BoxSizer( wx.HORIZONTAL )
-
-		self.m_button131 = wx.Button( self, wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer20.Add( self.m_button131, 0, wx.ALL, 5 )
-
-		self.m_button15 = wx.Button( self, wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer20.Add( self.m_button15, 0, wx.ALL, 5 )
-
-		self.m_button16 = wx.Button( self, wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer20.Add( self.m_button16, 0, wx.ALL, 5 )
+		edit_keytype_choiceChoices = []
+		self.edit_keytype_choice = wx.Choice( sbSizer8.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, edit_keytype_choiceChoices, 0 )
+		self.edit_keytype_choice.SetSelection( 0 )
+		bSizer26.Add( self.edit_keytype_choice, 0, wx.ALL, 5 )
 
 
-		bSizer18.Add( bSizer20, 0, wx.EXPAND, 5 )
+		sbSizer8.Add( bSizer26, 1, wx.EXPAND, 5 )
+
+		self.m_staticText12 = wx.StaticText( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Delay tims (Sec.)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText12.Wrap( -1 )
+
+		sbSizer8.Add( self.m_staticText12, 0, wx.ALL, 5 )
+
+		bSizer29 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.edit_delaytime_textCtrl = wx.TextCtrl( sbSizer8.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer29.Add( self.edit_delaytime_textCtrl, 0, wx.ALL, 5 )
+
+		self.insert_edit_button = wx.Button( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Insert", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer29.Add( self.insert_edit_button, 0, wx.ALL, 5 )
 
 
-		self.SetSizer( bSizer18 )
+		sbSizer8.Add( bSizer29, 1, wx.EXPAND, 5 )
+
+
+		sbSizer6.Add( sbSizer8, 0, wx.EXPAND, 5 )
+
+		sbSizer9 = wx.StaticBoxSizer( wx.StaticBox( sbSizer6.GetStaticBox(), wx.ID_ANY, u"label" ), wx.VERTICAL )
+
+		self.m_staticText11 = wx.StaticText( sbSizer9.GetStaticBox(), wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText11.Wrap( -1 )
+
+		sbSizer9.Add( self.m_staticText11, 0, wx.ALL, 5 )
+
+		bSizer27 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_textCtrl12 = wx.TextCtrl( sbSizer9.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer27.Add( self.m_textCtrl12, 0, wx.ALL, 5 )
+
+		self.m_button15 = wx.Button( sbSizer9.GetStaticBox(), wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer27.Add( self.m_button15, 0, wx.ALL, 5 )
+
+
+		sbSizer9.Add( bSizer27, 1, wx.EXPAND, 5 )
+
+
+		sbSizer6.Add( sbSizer9, 0, wx.EXPAND, 5 )
+
+		bSizer28 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.edit_save_button = wx.Button( sbSizer6.GetStaticBox(), wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer28.Add( self.edit_save_button, 0, wx.ALL|wx.ALIGN_BOTTOM, 5 )
+
+		self.edit_cancel_button = wx.Button( sbSizer6.GetStaticBox(), wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer28.Add( self.edit_cancel_button, 0, wx.ALL|wx.ALIGN_BOTTOM, 5 )
+
+
+		sbSizer6.Add( bSizer28, 1, wx.EXPAND, 5 )
+
+
+		bSizer23.Add( sbSizer6, 1, wx.BOTTOM|wx.EXPAND|wx.LEFT, 5 )
+
+
+		bSizer22.Add( bSizer23, 1, wx.EXPAND, 5 )
+
+		bSizer25 = wx.BoxSizer( wx.VERTICAL )
+
+		sbSizer7 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"label" ), wx.VERTICAL )
+
+		self.edit_hotkey_listCtrl = wx.ListCtrl( sbSizer7.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_VRULES )
+		sbSizer7.Add( self.edit_hotkey_listCtrl, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+		bSizer25.Add( sbSizer7, 1, wx.EXPAND, 5 )
+
+
+		bSizer22.Add( bSizer25, 1, wx.BOTTOM|wx.EXPAND|wx.RIGHT, 5 )
+
+
+		self.SetSizer( bSizer22 )
 		self.Layout()
 
 		self.Centre( wx.BOTH )
 
+		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.__close_frame )
+		self.edit_hotkey_textCtrl.Bind( wx.EVT_KILL_FOCUS, self.stop_edit_hotkey )
+		self.edit_hotkey_textCtrl.Bind( wx.EVT_SET_FOCUS, self.edit_hotkey )
+		self.edit_macrokey_textctrl.Bind( wx.EVT_KILL_FOCUS, self.stop_edit_macro )
+		self.edit_macrokey_textctrl.Bind( wx.EVT_SET_FOCUS, self.edit_macro )
+		self.edit_keytype_choice.Bind( wx.EVT_CHOICE, self.arrange_gui )
+		self.insert_edit_button.Bind( wx.EVT_BUTTON, self.insert_macro_to_listctrl )
+
 	def __del__( self ):
 		pass
+
+
+	# Virtual event handlers, overide them in your derived class
+	def __close_frame( self, event ):
+		event.Skip()
+
+	def stop_edit_hotkey( self, event ):
+		event.Skip()
+
+	def edit_hotkey( self, event ):
+		event.Skip()
+
+	def stop_edit_macro( self, event ):
+		event.Skip()
+
+	def edit_macro( self, event ):
+		event.Skip()
+
+	def arrange_gui( self, event ):
+		event.Skip()
+
+	def insert_macro_to_listctrl( self, event ):
+		event.Skip()
 
 

@@ -6,6 +6,7 @@ import subprocess
 from multiprocessing import Process
 import threading
 import json
+from threading import Timer
 
 
 def get_foreground_title():
@@ -17,7 +18,7 @@ def get_foreground_title():
     return title
 
 
-class CreateThread(threading.Thread):
+class CreateEmptyThread(threading.Thread):
     def __init__(self, queue, stop_str):
         threading.Thread.__init__(self)
         self.thread_queue = queue
@@ -35,6 +36,36 @@ class CreateThread(threading.Thread):
                 time.sleep(0.2)
         except Exception as e:
             print('get queue fail: {}'.format(e))
+
+
+class CreateTimer(object):
+    def __init__(self):
+        self.timer_h = None
+
+    def is_timer_running(self):
+        if self.timer_h and self.timer_h.isAlive():
+            return True
+        return False
+
+    def start_count_timer(self, sec, callback, args='', repeat=False):
+        # print('start timer')
+        self.stop_count_timer()
+        self.timer_h = Timer(sec, self.timer_count_expired, (callback, args, repeat, ))
+        self.timer_h.start()
+
+    def stop_count_timer(self):
+        # print('stop timer')
+        if self.is_timer_running():
+            self.timer_h.cancel()
+
+    def timer_count_expired(self, callback, args, repeat):
+        if args:
+            callback(args)
+        else:
+            callback()
+
+        if repeat:
+            self.start_count_timer(0.3, callback, args, repeat)
 
 
 def create_process(process_list, args_list):
@@ -80,7 +111,7 @@ class JsonControl(object):
     def __init__(self, json_full_path):
         self.json_full_path = json_full_path
         self.json_format = 'utf8'
-        self.format_list = [None, 'utf8', 'utf-8-sig', 'utf16', 'big5', 'gbk', 'gb2312']
+        self.format_list = ['utf8', 'utf-8-sig', 'utf16', None, 'big5', 'gbk', 'gb2312']
         self.try_ini_format()
 
     def try_ini_format(self):
@@ -100,8 +131,7 @@ class JsonControl(object):
             with open(self.json_full_path, 'r', encoding=self.json_format) as file:
                 return json.load(file)
         except Exception as e:
-            print("Error! 讀取cfg設定檔發生錯誤! " + self.json_full_path)
-            str(e)
+            print("Error! 讀取cfg設定檔發生錯誤!: {} {}".format(self.json_full_path, e))
             raise
     #
     # def write_config(self, sections, key, value):
@@ -121,11 +151,12 @@ class JsonControl(object):
     #         str(e)
     #         raise
 
+
 class IniControl(object):
     def __init__(self, ini_full_path):
         self.ini_full_path = ini_full_path
         self.ini_format = 'utf8'
-        self.format_list = [None, 'utf8', 'utf-8-sig', 'utf16', 'big5', 'gbk', 'gb2312']
+        self.format_list = ['utf8', 'utf-8-sig', 'utf16', None, 'big5', 'gbk', 'gb2312']
         self.try_ini_format()
 
     def try_ini_format(self):

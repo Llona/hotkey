@@ -2,11 +2,14 @@ import settings
 from settings import CfgKeyEnum
 import utils
 from hot_key import HotKey
+from hot_key import KeyListener
 import queue
 import sys
 import gui_template
 import wx
 import key_scan_code_sender
+
+# import time
 # import multiprocessing
 # from multiprocessing import Process, Queue
 
@@ -26,8 +29,8 @@ def start_cmd():
     code_sender = key_scan_code_sender.ScanCodeSender()
     hot_key = HotKey(code_sender, thread_queue)
     hot_key.regist_hotkey(json_h['hot_key'])
-
-    check_foreground = utils.CheckWindowsIsForeground(settings.FOREGROUND_TITLE)
+    # print(json_h['hot_key'])
+    # check_foreground = utils.CheckWindowsIsForeground(settings.FOREGROUND_TITLE)
 
     # check_foreground_thread = utils.CreateThread(thread_queue, 'stop_foreground_check')
     #
@@ -89,7 +92,8 @@ class SettingFrame(gui_template.SettingFrame):
         for k, v in self.hotkey_dic.items():
             all_key_name = ''
             index = self.hotkey_listctrl.InsertItem(2, k)
-            for key_name in v:
+            for key_macro in v:
+                key_name = key_macro[CfgKeyEnum.key_name.value]
                 if all_key_name:
                     all_key_name = all_key_name + '+' + key_name
                 else:
@@ -108,11 +112,11 @@ class SettingFrame(gui_template.SettingFrame):
         return col_data
 
     def edit_hotkey(self, event):
-        dic_key = event.GetText()
+        hotkey = event.GetText()
         # todo: open edit frame
-        print(self.hotkey_dic[dic_key])
+        print(self.hotkey_dic[hotkey])
 
-        frame = EditFrame(self)
+        frame = EditFrame(self, self.hotkey_dic, hotkey)
         frame.Show(True)
 
     @staticmethod
@@ -122,16 +126,116 @@ class SettingFrame(gui_template.SettingFrame):
 
 
 class EditFrame(gui_template.EditFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, hotkey_dic, hotkey):
         gui_template.EditFrame.__init__(self, parent)
+        self.key_listener = None
+        self.hot_key_timer = None
+        self.hot_key_input = []
         self.parent = parent
+        self.hotkey_dic = hotkey_dic
+        self.hotkey = hotkey
+        # self.choice_index = 0
         self.parent.Bind(wx.EVT_ACTIVATE, self.set_focus)
 
+        self.init_gui()
+
+    def init_gui(self):
+        self.edit_hotkey_listCtrl.InsertColumn(0, 'KEY', width=100)
+        self.edit_hotkey_listCtrl.InsertColumn(1, 'Type')
+        self.edit_hotkey_listCtrl.InsertColumn(2, 'Delay')
+        self.edit_hotkey_textCtrl.SetValue(self.hotkey)
+
+        for key_macro in self.hotkey_dic[self.hotkey]:
+            index = self.edit_hotkey_listCtrl.InsertItem(2, key_macro[CfgKeyEnum.key_name.value])
+            self.edit_hotkey_listCtrl.SetItem(index, 1, key_macro[CfgKeyEnum.key_type.value])
+            if key_macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.delay.value:
+                self.edit_hotkey_listCtrl.SetItem(index, 2, str(key_macro[CfgKeyEnum.delay_time.value]))
+
+        key_type_list = ["press", "hold", "release", "delay"]
+        self.edit_keytype_choice.SetItems(key_type_list)
+        self.edit_keytype_choice.SetSelection(0)
+
+        self.arrange_gui()
+
+    def create_key_listener(self, all_key=True):
+        self.key_listener = None
+        self.key_listener = KeyListener()
+        self.key_listener.start(all_key)
+        self.hot_key_timer = utils.CreateTimer()
+
+    def stop_key_listener(self):
+        self.key_listener = None
+        self.hot_key_timer.stop_count_timer()
+        self.hot_key_timer = None
+
+    def edit_hotkey(self, event):
+        self.edit_hotkey_textCtrl.SetValue('')
+        self.create_key_listener()
+        self.hot_key_timer.start_count_timer(0.3, self.insert_hotkey_to_textctrl, repeat=True)
+
+    def insert_hotkey_to_textctrl(self):
+        input_text = ''
+        self.hot_key_input = self.key_listener.get_user_input_key_list()
+        for text in self.hot_key_input:
+            if input_text:
+                input_text = input_text + '+' + text
+            else:
+                input_text = text
+        if self.edit_hotkey_textCtrl.GetValue() != input_text:
+            self.edit_hotkey_textCtrl.SetValue(input_text)
+
+    def edit_macro(self, event):
+        self.edit_macrokey_textctrl.SetValue('')
+        self.create_key_listener(all_key=False)
+        self.hot_key_timer.start_count_timer(0.3, self.insert_macrokey_to_textctrl, repeat=True)
+
+    def insert_macrokey_to_textctrl(self):
+        input_key = self.key_listener.press_key_one
+        textctrl_key = self.edit_macrokey_textctrl.GetValue()
+        if input_key and textctrl_key != input_key:
+            self.edit_macrokey_textctrl.SetValue(input_key)
+
+    def insert_macro_to_listctrl(self, event):
+        macro_key = self.edit_macrokey_textctrl.GetValue()
+        if macro_key:
+            selected_index = self.edit_hotkey_listCtrl.GetFirstSelected()
+            if selected_index == -1:
+                index = self.edit_hotkey_listCtrl.InsertItem(self.edit_hotkey_listCtrl.GetItemCount(), macro_key)
+            else:
+                index = self.edit_hotkey_listCtrl.InsertItem(selected_index + 1, macro_key)
+
+            self.edit_hotkey_listCtrl.SetItem(index, 1, self.edit_macrokey_textctrl.GetValue())
+
+    def arrange_gui(self, event=None):
+        # self.choice_index = self.edit_keytype_choice.GetString(self.edit_keytype_choice.GetSelection())
+        # choice selected to delay
+        if self.edit_keytype_choice.GetSelection() == 3:
+            self.edit_macrokey_textctrl.SetValue('delay')
+            self.edit_delaytime_textCtrl.SetValue('0.5')
+            self.edit_delaytime_textCtrl.SetEditable(True)
+        else:
+            if self.edit_macrokey_textctrl.GetValue() == 'delay':
+                self.edit_macrokey_textctrl.SetValue('')
+                self.edit_delaytime_textCtrl.SetValue('')
+            self.edit_delaytime_textCtrl.SetEditable(False)
+
+    def stop_edit_hotkey(self, event):
+        self.stop_key_listener()
+        if self.edit_hotkey_textCtrl.GetValue() == '':
+            self.edit_hotkey_textCtrl.SetValue(self.hotkey)
+
+    def stop_edit_macro(self, event):
+        self.stop_key_listener()
+
     def set_focus(self, event):
-        print(event.GetActive())
+        # print(event.GetActive())
         if event.GetActive():
             self.SetFocus()
-            self.edit_listctrl.SetFocus()
+            self.insert_edit_button.SetFocus()
+
+    def __close_frame(self, event):
+        self.parent.Unbind(wx.EVT_ACTIVATE)
+        self.Destroy()
 
 
 def start_gui():
