@@ -112,7 +112,8 @@ class JsonControl(object):
         self.json_full_path = json_full_path
         self.json_format = 'utf8'
         self.format_list = ['utf8', 'utf-8-sig', 'utf16', None, 'big5', 'gbk', 'gb2312']
-        self.try_ini_format()
+        if os.path.exists(self.json_full_path):
+            self.try_ini_format()
 
     def try_ini_format(self):
         for file_format in self.format_list:
@@ -120,7 +121,7 @@ class JsonControl(object):
                 with open(self.json_full_path, 'r', encoding=file_format) as file:
                     json_dic = json.load(file)
                 self.json_format = file_format
-                print('find correct format {} in ini file: {}'.format(file_format, self.json_full_path))
+                print('find correct format {} in json file: {}'.format(file_format, self.json_full_path))
                 return
             except Exception as e:
                 print('checking {} format: {}'.format(self.json_full_path, file_format))
@@ -133,23 +134,15 @@ class JsonControl(object):
         except Exception as e:
             print("Error! 讀取cfg設定檔發生錯誤!: {} {}".format(self.json_full_path, e))
             raise
-    #
-    # def write_config(self, sections, key, value):
-    #     try:
-    #         config_lh = configparser.ConfigParser()
-    #         config_lh.optionxform = str
-    #         file_ini_lh = open(self.ini_full_path, 'r', encoding=self.ini_format)
-    #         config_lh.read_file(file_ini_lh)
-    #         file_ini_lh.close()
-    #
-    #         file_ini_lh = open(self.ini_full_path, 'w', encoding=self.ini_format)
-    #         config_lh.set(sections, key, value)
-    #         config_lh.write(file_ini_lh)
-    #         file_ini_lh.close()
-    #     except Exception as e:
-    #         print("Error! 寫入ini設定檔發生錯誤! " + self.ini_full_path)
-    #         str(e)
-    #         raise
+
+    def write_config(self, json_content):
+        try:
+            with open(self.json_full_path, 'w', encoding=self.json_format) as file:
+                json.dump(json_content, file, ensure_ascii=False, indent=4, separators=(',', ':'))
+        except Exception as e:
+            print("Error! 寫入cfg設定檔發生錯誤! {} {}".format(self.json_full_path, e))
+            # str(e)
+            raise
 
 
 class IniControl(object):

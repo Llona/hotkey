@@ -5,7 +5,9 @@ import sys
 
 test = False
 CONFIG_FOLDER_NAME = 'config'
-DEFAULT_CONFIG_NAME = os.path.join(os.path.join(sys.path[0], CONFIG_FOLDER_NAME), 'test.cfg')
+CONFIG_FOLDER_PATH = os.path.join(sys.path[0], CONFIG_FOLDER_NAME)
+DEFAULT_CONFIG_NAME = os.path.join(CONFIG_FOLDER_PATH, 'test.cfg')
+TEST_CONFIG_NAME = os.path.join(CONFIG_FOLDER_PATH, 'test_ori.cfg')
 FOREGROUND_TITLE = '未命名 - 記事本'
 exec_full_path = r'C:\Users\william_liu\Desktop\joytokey\JoyToKey.exe'
 ini_full_path = r'C:\Users\william_liu\Documents\JoyToKey\JoyToKey.ini'
@@ -14,6 +16,7 @@ ini_full_path = r'C:\Users\william_liu\Documents\JoyToKey\JoyToKey.ini'
 class CfgKeyEnum(enum.Enum):
     joy_to_key_cfg = 'joy_to_key'
     hot_key = 'hot_key'
+    comment = 'comment'
     key_name = 'key_name'
     key_type = 'key_type'
     delay = 'delay'
@@ -28,7 +31,7 @@ ChoiceKeyTypes = {
     0: 'press',
     1: 'hold',
     2: 'release',
-    3: 'sleep',
+    3: 'delay',
 }
 
 
