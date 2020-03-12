@@ -1,3 +1,5 @@
+# _*_ coding:utf-8 _*_
+
 import ctypes
 import time
 import configparser
@@ -65,7 +67,9 @@ class CreateTimer(object):
             callback()
 
         if repeat:
-            self.start_count_timer(0.3, callback, args, repeat)
+            self.start_count_timer(0.2, callback, args, repeat)
+        else:
+            self.stop_count_timer()
 
 
 def create_process(process_list, args_list):

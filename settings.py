@@ -1,9 +1,11 @@
+# _*_ coding:utf-8 _*_
+
 import enum
 import os
 import sys
 
 
-test = False
+# test = False
 CONFIG_FOLDER_NAME = 'config'
 CONFIG_FOLDER_PATH = os.path.join(sys.path[0], CONFIG_FOLDER_NAME)
 DEFAULT_CONFIG_NAME = os.path.join(CONFIG_FOLDER_PATH, 'test.cfg')
@@ -23,29 +25,31 @@ class CfgKeyEnum(enum.Enum):
     delay_time = 'time'
 
     press = 'press'
+    burst = 'burst'
     hold = 'hold'
     release = 'release'
 
 
 ChoiceKeyTypes = {
     0: 'press',
-    1: 'hold',
-    2: 'release',
-    3: 'delay',
+    1: 'burst',
+    2: 'hold',
+    3: 'release',
+    4: 'delay',
 }
 
 
-class KeyGroupEnum(enum.Enum):
-    modau = '魔道'
-    ninja = '忍者'
-    slash = '槍劍'
+# class KeyGroupEnum(enum.Enum):
+#     modau = '魔道'
+#     ninja = '忍者'
+#     slash = '槍劍'
 
 
-JoyToKeyCfg_dic = {KeyGroupEnum.modau: 'DNF魔道',
-                   KeyGroupEnum.ninja: 'DNF忍者',
-                   KeyGroupEnum.slash: 'DNF槍劍'}
-
-KEY_GROUP = KeyGroupEnum.modau
+# JoyToKeyCfg_dic = {KeyGroupEnum.modau: 'DNF魔道',
+#                    KeyGroupEnum.ninja: 'DNF忍者',
+#                    KeyGroupEnum.slash: 'DNF槍劍'}
+#
+# KEY_GROUP = KeyGroupEnum.modau
 
 ScanCode = {
     'esc': 0x01,

@@ -5,8 +5,7 @@ from settings import MappingCharToKey
 from abc import ABC, abstractmethod
 import utils
 from time import sleep
-# from threading import Thread
-
+import  threading
 
 class KeyListener(object):
     def __init__(self):
@@ -57,16 +56,53 @@ class KeyListener(object):
         return self.user_press_list
 
 
+class CreateBurstSendThread(threading.Thread):
+    def __init__(self, key_sender, key_code, delay_time=None):
+        super(CreateBurstSendThread, self).__init__()
+        self.__paus_flag = threading.Event()
+        self.__paus_flag.set()
+        self.__running = threading.Event()
+        self.__running.set()
+        self.key_code = key_code
+        if delay_time:
+            self.burst_delay = delay_time
+        else:
+            self.burst_delay = 0.1
+        self.key_sender = key_sender
+
+    def run(self):
+        while self.__running.isSet():
+            self.__paus_flag.wait()
+            self.key_sender.key_press(self.key_code)
+            sleep(self.burst_delay)
+
+    def pause(self):
+        self.__paus_flag.clear()
+
+    def resume(self):
+        self.__paus_flag.set()
+
+    def stop(self):
+        self.__paus_flag.set()
+        self.__running.clear()
+
+
 class HotKey(object):
     def __init__(self, key_sender, thread_queue):
         self.thread_queue = thread_queue
         self.key_sender = key_sender
+        self.is_key_sender_process_done = True
+        self.burst_sender = None
+        self.is_burst_sending = False
 
     def regist_hotkey(self, hotkey_group):
         # keyboard.add_hotkey('esc', self.stop_hotkey_waiting)
         # key_macro_list = []
         for hot_key, key_macro_list in hotkey_group.items():
-            keyboard.add_hotkey(hot_key, self.send_hot_key, args=[key_macro_list])
+            if self.is_buster_key(key_macro_list):
+                keyboard.hook_key(hot_key, self.burst_one_key)
+            else:
+                keyboard.add_hotkey(hot_key, self.send_hot_key, args=[key_macro_list])
         # keyboard.add_hotkey('F2', self.hotkey_fun)
 
         # hotkey_listen = utils.CreateEmptyThread(self.thread_queue, 'stop_hotkey')
@@ -76,11 +112,19 @@ class HotKey(object):
         keyboard.wait('esc')
         # queue_h.put('end')
 
+    @staticmethod
+    def is_buster_key(key_macro_list):
+        for macro in key_macro_list:
+            if macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.burst.value:
+                return True
+        return False
+
     def stop_hotkey_waiting(self):
         self.thread_queue.put('stop_hotkey')
 
     def send_hot_key(self, key_macro_list):
         try:
+            self.is_key_sender_process_done = False
             for key_macro in key_macro_list:
                 # todo: only send scan code now, implement support both virtual code and scan code later
                 if key_macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.delay.value:
@@ -90,6 +134,8 @@ class HotKey(object):
                 key_code = ScanCode[key_macro[CfgKeyEnum.key_name.value]]
                 if key_macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.press.value:
                     key_press(self.key_sender, key_code)
+                # elif key_macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.burst.value:
+                #     keyboard.hook_key(key_code, self.burst_one_key)
                 elif key_macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.hold.value:
                     hold_press_key(self.key_sender, key_code)
                 elif key_macro[CfgKeyEnum.key_type.value] == CfgKeyEnum.release.value:
@@ -98,9 +144,28 @@ class HotKey(object):
                     raise
         except Exception as e:
             print('key define error {}'.format(e))
+        finally:
+            self.is_key_sender_process_done = True
 
     def send_key(self, key_code):
         key_press(self.key_sender, key_code)
+
+    def burst_one_key(self, key_event):
+        if key_event.event_type == 'down':
+            if not self.is_burst_sending:
+                self.is_burst_sending = True
+                key_code = ScanCode[key_event.name]
+                self.burst_sender = CreateBurstSendThread(self.key_sender, key_code)
+                # self.burst_sender.set_key_code(key_code)
+                self.burst_sender.start()
+        else:
+            monitor_key_timer = utils.CreateTimer()
+            monitor_key_timer.start_count_timer(0.2, self.stop_burst_key, args=(key_event.name,))
+
+    def stop_burst_key(self, key_name):
+        if not keyboard.is_pressed(key_name):
+            self.is_burst_sending = False
+            self.burst_sender.stop()
 
     def hold_key(self, key_code):
         hold_press_key(self.key_sender, key_code)

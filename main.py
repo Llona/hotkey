@@ -1,3 +1,5 @@
+# _*_ coding:utf-8 _*_
+
 import settings
 from settings import CfgKeyEnum
 from settings import ChoiceKeyTypes
@@ -19,18 +21,32 @@ from collections import OrderedDict
 thread_queue = queue.Queue()
 
 
+def remove_comment_from_cfg(hotkey_cfg):
+    for hotkey, macro_list in hotkey_cfg.items():
+        macro_count = 0
+        for macro_dic in macro_list:
+            if CfgKeyEnum.comment.value in macro_dic.keys():
+                del hotkey_cfg[hotkey][macro_count]
+            macro_count += 1
+
+    return hotkey_cfg
+
+
 def start_cmd():
     # joytokey_cfg = settings.JoyToKeyCfg_dic[settings.KEY_GROUP]
     # key_group = settings.KEY_GROUP
     json_h = utils.JsonControl(settings.DEFAULT_CONFIG_NAME)
     json_h = json_h.read_config()
 
+    hotkey_cfg = remove_comment_from_cfg(json_h['hot_key'])
+
     run_joy_to_key = utils.RunJoyToKey(settings.ini_full_path, settings.exec_full_path, json_h['joy_to_key'])
     run_joy_to_key.re_run_joy_to_key()
 
     code_sender = key_scan_code_sender.ScanCodeSender()
     hot_key = HotKey(code_sender, thread_queue)
-    hot_key.regist_hotkey(json_h['hot_key'])
+    hot_key.regist_hotkey(hotkey_cfg)
+
     # print(json_h['hot_key'])
     # check_foreground = utils.CheckWindowsIsForeground(settings.FOREGROUND_TITLE)
 
